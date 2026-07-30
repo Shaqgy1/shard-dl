@@ -94,7 +94,11 @@ no separate header or toolbar eating vertical space.
 ```
 
 Drag the bar to move, double-click to maximize, drag any edge to resize — all
-delegated to the OS, so Windows snap layouts work normally.
+delegated to the OS, so Windows snap layouts work normally. The window keeps a
+normal `WS_OVERLAPPEDWINDOW` style under the hood (only the native titlebar is
+hidden, via `WM_NCCALCSIZE`), so tiling window managers like **komorebi** and
+**GlazeWM** manage it like any other window instead of skipping it — a common
+failure mode for custom-chrome apps built on `WS_POPUP`.
 
 ### Keyboard
 

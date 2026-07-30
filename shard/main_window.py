@@ -24,6 +24,7 @@ from .icons import app_icon
 from .options_panel import OptionsPanel
 from .theme import DEFAULT_THEME, THEMES, build_stylesheet, status_colors
 from .titlebar import TitleBar, install_resize_grips, layout_resize_grips
+from .win32_chrome import IS_WINDOWS, WM_NCCALCSIZE, disable_rounded_corners, filter_nc_calcsize, parse_message
 from .worker import DownloadJob, QueueManager
 from .ytdlp import build_args, find_ffmpeg, find_ytdlp, format_command, probe_version
 
@@ -76,10 +77,16 @@ class MainWindow(QMainWindow):
         self._clip_seen = ""
         self._clip_connected = False
 
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
+        # Deliberately NOT Qt.FramelessWindowHint: on Windows that produces a
+        # WS_POPUP window, which tiling window managers (komorebi, GlazeWM)
+        # filter out entirely - it never appears in the layout, not even as
+        # floating/ignored. Keeping the normal window style and hiding the
+        # native titlebar via nativeEvent()/WM_NCCALCSIZE instead keeps the
+        # window fully manageable. See win32_chrome.py.
         self._build_ui()
         self._grips = install_resize_grips(self)
         self._install_shortcuts()
+        disable_rounded_corners(int(self.winId()))
         self.options_panel.load_prefs(self.prefs)
         self.options_panel.prefs_changed.connect(self._on_prefs_changed)
         self._wire_pref_buttons()
@@ -308,6 +315,18 @@ class MainWindow(QMainWindow):
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
         layout_resize_grips(self._grips, self.width(), self.height())
+
+    def nativeEvent(self, eventType, message):
+        if IS_WINDOWS and eventType == b"windows_generic_MSG":
+            msg = parse_message(message)
+            if msg is not None and msg.message == WM_NCCALCSIZE and msg.wParam:
+                # Claim the whole window as client area - no native titlebar
+                # gets drawn, but the underlying window style stays a normal
+                # WS_OVERLAPPEDWINDOW, so komorebi still sees a manageable
+                # window.
+                filter_nc_calcsize(self.isMaximized(), msg.lParam)
+                return True, 0
+        return super().nativeEvent(eventType, message)
 
     # ============================================================ theming
     def apply_theme(self) -> None:

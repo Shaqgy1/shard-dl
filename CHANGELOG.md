@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] - 2026-07-31
+
+### Fixed
+
+- The window is now manageable by tiling window managers (komorebi,
+  GlazeWM, and similar). `Qt.FramelessWindowHint` produced a `WS_POPUP`
+  window on Windows - the same style used by tooltips and splash screens -
+  so Shard was invisible to WM window enumeration entirely, not merely
+  excluded. The custom titlebar is now achieved by keeping a normal
+  `WS_OVERLAPPEDWINDOW` style and hiding the native chrome purely visually
+  via `WM_NCCALCSIZE`, the same technique Windows Terminal uses. See
+  `shard/win32_chrome.py`.
+- Maximizing no longer overhangs the screen edge by the (now invisible)
+  resize border, a standard side effect of the above technique.
+- Win11's rounded window corners are now disabled, so the window sits flush
+  against tiled neighbours instead of leaving visible corner gaps.
+
 ## [1.0.0] - 2026-07-30
 
 First public release.
