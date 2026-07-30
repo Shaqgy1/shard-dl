@@ -45,6 +45,8 @@ yt-dlp as a subprocess. See [NOTICE.md](NOTICE.md).
   recolours with the palette
 - **Clipboard watching** — copy a link, it queues itself (opt-in, links only)
 - **Portable build** — one self-contained `.exe`, no Python needed
+- **Tiles properly** — a normal `WS_OVERLAPPEDWINDOW` under the hood, so
+  komorebi and GlazeWM manage it like any other window instead of skipping it
 
 <details>
 <summary>More screenshots</summary>
@@ -84,23 +86,7 @@ Shard finds yt-dlp on `PATH`, in the usual winget locations, or next to its own
 executable. An installed copy always wins over the bundled one, so updates keep
 taking effect.
 
-## The window
-
-Frameless, with an Obsidian-style 40px title bar carrying the app's actions —
-no separate header or toolbar eating vertical space.
-
-```
-◆ SHARD │ ＋ ▶ ‖ ■ │ ⌕ >_ │ 🗀 🗑 │ ⚙        yt-dlp 2026.07.04   ─ ▢ ✕
-```
-
-Drag the bar to move, double-click to maximize, drag any edge to resize — all
-delegated to the OS, so Windows snap layouts work normally. The window keeps a
-normal `WS_OVERLAPPEDWINDOW` style under the hood (only the native titlebar is
-hidden, via `WM_NCCALCSIZE`), so tiling window managers like **komorebi** and
-**GlazeWM** manage it like any other window instead of skipping it — a common
-failure mode for custom-chrome apps built on `WS_POPUP`.
-
-### Keyboard
+## Keyboard
 
 | Shortcut | Action |
 |---|---|
