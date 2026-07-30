@@ -1,0 +1,64 @@
+name: Bug report
+description: Something in Shard is not working
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: if a download fails, paste the command from
+        **Preview command** (`Ctrl+K`) into a terminal. If it fails there too,
+        the bug is probably in [yt-dlp](https://github.com/yt-dlp/yt-dlp/issues)
+        rather than Shard.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command preview
+      description: The output of Preview command (Ctrl+K). Redact anything private.
+      render: shell
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Log output
+      description: The relevant lines from the log pane.
+      render: shell
+
+  - type: input
+    id: shard-version
+    attributes:
+      label: Shard version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: ytdlp-version
+    attributes:
+      label: yt-dlp version
+      description: Shown in the title bar.
+      placeholder: "2026.07.04"
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How are you running it?
+      options:
+        - Portable Shard.exe
+        - From source (python main.py)
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: "Windows 11 24H2"

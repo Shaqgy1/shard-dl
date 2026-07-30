@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest something for Shard
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation, not just the feature.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like Shard to do?
+    validations:
+      required: true
+
+  - type: input
+    id: ytdlp-flag
+    attributes:
+      label: Related yt-dlp flag
+      description: If this maps to a yt-dlp option, name it — it makes the change trivial.
+      placeholder: "--download-sections"
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I checked that this is not already available in one of the ten sections
+          required: true

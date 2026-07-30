@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+contact_links:
+  - name: yt-dlp issue tracker
+    url: https://github.com/yt-dlp/yt-dlp/issues
+    about: >-
+      Extraction failures, site support, and download errors that also happen
+      when you run the command directly belong here, not in Shard.
+  - name: yt-dlp option reference
+    url: https://github.com/yt-dlp/yt-dlp#usage-and-options
+    about: What each flag Shard exposes actually does.
