@@ -1,6 +1,6 @@
 [project]
 name = "shard-dl"
-version = "1.0.2"
+version = "1.0.3"
 description = "A neon GUI for yt-dlp - every option exposed, with a real download queue."
 readme = "README.md"
 requires-python = ">=3.11"

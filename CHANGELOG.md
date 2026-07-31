@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.3] - 2026-07-31
+
+### Fixed
+
+- A queued item kept the options snapshot captured at the moment it was
+  added, not whatever was later changed in the panel - so enabling
+  cookies-from-browser (or any other setting) *after* clicking "Add to
+  queue" but before "Start" was silently ignored for that item. "Start",
+  "Start now", "Retry" and auto-retry now all refresh each job's options
+  to whatever is currently in the panel before running it - "Start" means
+  "start with what I've got configured now."
+
 ## [1.0.2] - 2026-07-31
 
 ### Fixed

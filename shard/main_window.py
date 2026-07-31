@@ -493,6 +493,13 @@ class MainWindow(QMainWindow):
                     self, APP_NAME,
                     f"Could not create the download folder:\n{opt.output_dir}\n\n{exc}")
                 return
+        # Options are captured per-job at queue time, so a setting changed
+        # after "Add to queue" but before "Start" would otherwise be
+        # silently ignored. Refresh every not-yet-started job to whatever
+        # is currently in the panel - "Start" should mean "start with what
+        # I've got configured now."
+        for job in pending:
+            job.options = opt.clone()
         self.queue.start()
 
     def clear_finished(self) -> None:
@@ -799,7 +806,12 @@ class MainWindow(QMainWindow):
                 self.log.appendPlainText(
                     f"[retry] {job.title or job.url} - attempt {used + 1}"
                     f"/{self.prefs.auto_retry_failed}")
-                QTimer.singleShot(2000, lambda j=job: (j.reset(), self.queue.start()))
+                QTimer.singleShot(2000, lambda j=job: self._auto_retry(j))
+
+    def _auto_retry(self, job: DownloadJob) -> None:
+        job.options = self.current_options().clone()
+        job.reset()
+        self.queue.start()
 
     def _on_job_logged(self, job: DownloadJob, line: str) -> None:
         tag = (job.title or job.url)[:42]
@@ -881,16 +893,20 @@ class MainWindow(QMainWindow):
         if chosen is None:
             return
         if chosen == act_start:
-            self.queue.concurrency = self.current_options().concurrent_downloads
+            opt = self.current_options()
+            self.queue.concurrency = opt.concurrent_downloads
             self.queue._running = True
             for job in jobs:
+                job.options = opt.clone()
                 job.start()
         elif chosen == act_cancel:
             for job in jobs:
                 job.cancel()
         elif chosen == act_retry:
+            opt = self.current_options()
             for job in jobs:
                 self._retries.pop(job.id, None)
+                job.options = opt.clone()
                 job.reset()
             self.queue.start()
         elif chosen == act_open:

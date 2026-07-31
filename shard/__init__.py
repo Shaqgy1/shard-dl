@@ -1,5 +1,5 @@
 """Shard - a neon media downloader built on yt-dlp."""
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 APP_NAME = "Shard"
 TAGLINE = "a neon media downloader"
