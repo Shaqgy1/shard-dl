@@ -4,6 +4,30 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.2] - 2026-07-31
+
+### Fixed
+
+- The packaged `Shard.exe` was always running its bundled (build-time) copy
+  of yt-dlp, silently ignoring a newer installed one. Root cause:
+  PyInstaller's onefile bootloader prepends its own extraction folder
+  (`_MEIPASS`) to the process's `PATH` so bundled DLLs can be found - and
+  since the bundled `yt-dlp.exe` sits in that same folder, `shutil.which
+  ("yt-dlp")` found it before ever checking for a real install, completely
+  inverting the intended "installed wins over bundled" precedence.
+  `find_ytdlp()` now discards a `shutil.which()` hit that resolves inside
+  the app's own extraction directory.
+- A related, independent robustness bug in the same function: the
+  installed-copy search used `Path.glob("**/...")`, which aborts its
+  *entire* walk the moment any single subdirectory raises `OSError` -
+  and `%LOCALAPPDATA%\Microsoft\WinGet\Packages` routinely holds dozens of
+  unrelated apps, any one of which can be transiently locked by antivirus
+  scanning. Replaced with a manual walk that skips a bad subdirectory
+  instead of abandoning the search.
+- The status bar and title bar now say `(bundled)` when Shard is running
+  the copy embedded in the exe rather than an installed one, so a mismatch
+  like this no longer fails silently.
+
 ## [1.0.1] - 2026-07-31
 
 ### Fixed

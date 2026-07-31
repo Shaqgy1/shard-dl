@@ -26,7 +26,9 @@ from .theme import DEFAULT_THEME, THEMES, build_stylesheet, status_colors
 from .titlebar import TitleBar, install_resize_grips, layout_resize_grips
 from .win32_chrome import IS_WINDOWS, WM_NCCALCSIZE, disable_rounded_corners, filter_nc_calcsize, parse_message
 from .worker import DownloadJob, QueueManager
-from .ytdlp import build_args, find_ffmpeg, find_ytdlp, format_command, probe_version
+from .ytdlp import (
+    build_args, find_ffmpeg, find_ytdlp, format_command, is_bundled_ytdlp, probe_version,
+)
 
 QUEUE_COLUMNS = ["#", "Title", "Status", "Progress", "Size", "Speed", "ETA"]
 URL_RE = re.compile(r"https?://\S+")
@@ -710,9 +712,16 @@ class MainWindow(QMainWindow):
         for key in ("start", "add"):
             self.title_bar.buttons[key].setEnabled(True)
         version = probe_version(self.binary)
-        self.title_bar.set_status(f"yt-dlp {version}" if version else "yt-dlp ready")
+        label = f"yt-dlp {version}" if version else "yt-dlp ready"
+        bundled = is_bundled_ytdlp(self.binary)
+        if bundled:
+            label += "  (bundled)"
+        self.title_bar.set_status(label)
         ffmpeg = self.prefs.ffmpeg_path.strip() or find_ffmpeg()
         parts = [f"yt-dlp: {self.binary}"]
+        if bundled:
+            parts.append("using the bundled copy - an installed yt-dlp could not be found or "
+                         "reached; install one with 'winget install yt-dlp.yt-dlp' to stay updated")
         parts.append(f"ffmpeg: {ffmpeg}" if ffmpeg else "ffmpeg: NOT FOUND (merging will fail)")
         self.statusBar().showMessage("     |     ".join(parts))
 

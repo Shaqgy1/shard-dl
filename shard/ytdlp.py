@@ -73,6 +73,55 @@ def _sidecar(name: str) -> str:
     return ""
 
 
+def _find_first(base: Path, filename: str, _depth: int = 0) -> str:
+    """Depth-first search for filename under base.
+
+    A plain base.glob("**/...") aborts its *entire* walk the moment any one
+    subdirectory raises OSError - and WinGet's Packages folder routinely
+    holds dozens of unrelated apps, any one of which can be transiently
+    locked by antivirus scanning. That silently loses a yt-dlp install that
+    sits right there in an accessible sibling folder. Walk manually instead,
+    so a bad subfolder is skipped rather than aborting the search.
+    """
+    if _depth > 6:  # WinGet package layouts are shallow; this is just a backstop.
+        return ""
+    try:
+        entries = list(base.iterdir())
+    except OSError:
+        return ""
+    for entry in entries:
+        try:
+            if entry.is_file() and entry.name.lower() == filename.lower():
+                return str(entry)
+        except OSError:
+            continue
+        if entry.is_dir():
+            hit = _find_first(entry, filename, _depth + 1)
+            if hit:
+                return hit
+    return ""
+
+
+def _inside_bundle(path: str) -> bool:
+    """True if `path` resolves inside this frozen exe's own extraction folder.
+
+    PyInstaller's onefile bootloader prepends _MEIPASS to the process's PATH
+    so its bundled DLLs can be found - which means shutil.which("yt-dlp")
+    finds our own bundled copy before it ever finds a real system install,
+    completely inverting the intended "installed wins over bundled"
+    precedence. A shutil.which() hit only counts if it points somewhere
+    other than our own temp extraction directory.
+    """
+    if not is_frozen():
+        return False
+    try:
+        resolved = Path(path).resolve()
+        bd = bundle_dir().resolve()
+        return resolved == bd or bd in resolved.parents
+    except OSError:
+        return False
+
+
 def find_ytdlp(explicit: str = "") -> str:
     """Return a usable path to yt-dlp, or '' if none was found.
 
@@ -83,7 +132,7 @@ def find_ytdlp(explicit: str = "") -> str:
         return explicit
 
     found = shutil.which("yt-dlp")
-    if found:
+    if found and not _inside_bundle(found):
         return found
 
     candidates = [
@@ -94,11 +143,9 @@ def find_ytdlp(explicit: str = "") -> str:
     for base in candidates:
         if not base.exists():
             continue
-        try:
-            for hit in base.glob("**/yt-dlp.exe"):
-                return str(hit)
-        except OSError:
-            continue
+        hit = _find_first(base, "yt-dlp.exe")
+        if hit:
+            return hit
 
     return _sidecar("yt-dlp.exe")
 
@@ -106,6 +153,21 @@ def find_ytdlp(explicit: str = "") -> str:
 def find_ffmpeg() -> str:
     """Prefer an ffmpeg sitting beside the exe, then fall back to PATH."""
     return _sidecar("ffmpeg.exe") or shutil.which("ffmpeg") or ""
+
+
+def is_bundled_ytdlp(binary: str) -> bool:
+    """True when `binary` is the copy embedded in this exe, not an installed one.
+
+    Worth surfacing in the UI: the bundled copy is frozen at build time, so a
+    machine silently running on it (e.g. because find_ytdlp() couldn't reach
+    an installed copy) is missing whatever fixes yt-dlp has shipped since.
+    """
+    if not binary or not is_frozen():
+        return False
+    try:
+        return Path(binary).resolve().parent in (app_dir().resolve(), bundle_dir().resolve())
+    except OSError:
+        return False
 
 
 def probe_version(binary: str) -> str:
